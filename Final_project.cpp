@@ -63,7 +63,9 @@ void RBT::insert(rbt_node* new_node) {
         }
         if (parent->color == 0) new_node->color = 1; // If parent is red, new node should be black
 
-    } return;
+    }
+    fix_tree(get_root()); // Fix the tree after insertion 
+    return;
 }
 
 void RBT::insert_data(int id, int score) {
@@ -72,24 +74,115 @@ void RBT::insert_data(int id, int score) {
     return;
 }
 
-void RBT::fix_tree(rbt_node* node) {
-    if (node==*root) {
-        node->color = 1; // Ensure the root is always black
-        node->level = 0; // Root is at level 0
-    } else if (node == nullptr) {
-        return; // Base case: if node is null, return
+void RBT::rotate_left(rbt_node* node) {
+    rbt_node* right_child = node->right;
+    node->right = right_child->left;
+    if (right_child->left != nullptr) {
+        right_child->left->parent = node;
+    }
+    right_child->parent = node->parent;
+    if (node->parent == nullptr) {
+        *root = right_child;
+    } else if (node == node->parent->left) {
+        node->parent->left = right_child;
     } else {
+        node->parent->right = right_child;
+    }
+    right_child->left = node;
+    node->parent = right_child;
+}
+
+void RBT::rotate_right(rbt_node* node) {
+    rbt_node* left_child = node->left;
+    node->left = left_child->right;
+    if (left_child->right != nullptr) {
+        left_child->right->parent = node;
+    }
+    left_child->parent = node->parent;
+    if (node->parent == nullptr) {
+        *root = left_child;
+    } else if (node == node->parent->right) {
+        node->parent->right = left_child;
+    } else {
+        node->parent->left = left_child;
+    }
+    left_child->right = node;
+    node->parent = left_child;
+}
+
+void RBT::fix_tree(rbt_node* node) {
+    
+if (node == nullptr) return;
+
+    // New nodes should start RED in RB insert
+    node->color = 0;
+
+    while (node != *root && node->parent != nullptr && node->parent->color == 0) {
         rbt_node* parent = node->parent;
-        int level = parent->level + 1; // Set the level of the new node based on its parent
-        node->level = level; // Assign the calculated level to the new node
-        if (level % 2 == 0) {
-            node->color = 1; // Recolor the node to black
-        } else {
-            node->color = 0; // Recolor the node to red
+        rbt_node* grand  = parent->parent;
+
+        if (grand == nullptr) break;
+
+        // Parent is LEFT child of grandparent
+        if (parent == grand->left) {
+            rbt_node* uncle = grand->right;
+
+            // Case 1: Uncle is RED -> recolor and move up
+            if (uncle != nullptr && uncle->color == 0) {
+                parent->color = 1;
+                uncle->color  = 1;
+                grand->color  = 0;
+                node = grand;
+            } 
+            else {
+                // Case 2: node is RIGHT child -> rotate left at parent
+                if (node == parent->right) {
+                    node = parent;
+                    rotate_left(node);
+                    parent = node->parent;
+                    grand  = parent ? parent->parent : nullptr;
+                }
+
+                // Case 3: node is LEFT child -> rotate right at grand
+                if (parent) parent->color = 1;
+                if (grand) {
+                    grand->color = 0;
+                    rotate_right(grand);
+                }
+            }
+        }
+        // Parent is RIGHT child of grandparent (mirror cases)
+        else {
+            rbt_node* uncle = grand->left;
+
+            // Case 1 mirror
+            if (uncle != nullptr && uncle->color == 0) {
+                parent->color = 1;
+                uncle->color  = 1;
+                grand->color  = 0;
+                node = grand;
+            } 
+            else {
+                // Case 2 mirror: node is LEFT child -> rotate right at parent
+                if (node == parent->left) {
+                    node = parent;
+                    rotate_right(node);
+                    parent = node->parent;
+                    grand  = parent ? parent->parent : nullptr;
+                }
+
+                // Case 3 mirror: rotate left at grand
+                if (parent) parent->color = 1;
+                if (grand) {
+                    grand->color = 0;
+                    rotate_left(grand);
+                }
+            }
         }
     }
-    fix_tree(node->left); // Recursively fix the tree up to the root
-    fix_tree(node->right);
+
+    // Root must always be BLACK
+    (*root)->color = 1;
 }
 
 void RBT::remove(int id) {
@@ -250,16 +343,18 @@ int RBT::get_score(rbt_node* node, int id) {
     return get_score(node->right, id);
 }
 
-vector<int> RBT::get_all_scores(rbt_node* node) {
-    vector<int> scores;
-    if (node == nullptr) return scores; // Return empty vector if tree is empty
+vector<int> inorder(rbt_node* node, vector<int>& scores) {
+    if (node == nullptr) return {};
+    vector<int> left_scores = inorder(node->left, scores);
     scores.push_back(node->score);
-    vector<int> left_scores = get_all_scores(node->left);
-    vector<int> right_scores = get_all_scores(node->right);
-    scores.insert(scores.end(), left_scores.begin(), left_scores.end());
-    scores.insert(scores.end(), right_scores.begin(), right_scores.end());
-    sort(scores.begin(), scores.end());
+    vector<int> right_scores = inorder(node->right, scores);
     return scores;
+}
+
+vector<int> RBT::get_all_scores(rbt_node* node) {
+    vector<int> &scores = *(new vector<int>);
+    if (node == nullptr) return scores;
+    return inorder(node, scores);
 }
 
 int RBT::get_max_score(rbt_node* node) {
