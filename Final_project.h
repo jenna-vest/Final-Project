@@ -30,6 +30,10 @@ public:
 
     void insert_data(int id, int score);
 
+    void rotate_left(rbt_node* node);
+
+    void rotate_right(rbt_node* node);
+
     void fix_tree(rbt_node* node);
 
     void remove(int id);
@@ -51,6 +55,8 @@ public:
     void set_root(rbt_node** node);
 
     int get_score(rbt_node* node, int id);
+
+    vector<int> inorder(rbt_node* node, vector<int>& scores)
 
     vector<int> get_all_scores(rbt_node* node);
 
