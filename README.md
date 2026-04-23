@@ -21,6 +21,11 @@ In a standard binary search tree, each node has up to two children. A nodes left
 
 ## Running the program
 
+This program was designed to run from a `main.cpp` file, rather than a build folder. To set up and run the program:
+1. Go to program directory using `cd <path>\Final Project`.
+2. Run `g++ main.cpp -o main`.
+3. Run `./main.exe`.
+
 When the program starts, 40 data points (including IDs from 1 to 40 and various scores from 0 to 100) are loaded into a new tree. Users have the option to use this tree or create a new one. After the tree has loaded, the user will view a menu, which allows them to select a function they would like to run.
 
 When first starting the program, the user will read "What would you like to do? (Please select a number from the menu below)". The the following menu options will be presented.
