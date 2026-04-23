@@ -59,7 +59,7 @@ Then the user must press any key before seeing the menu again.
 
 
 ## Node Class
-The node class contains the following code:
+The node class contains the following structure:
 
 ```
 struct rbt_node {
